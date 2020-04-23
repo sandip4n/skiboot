@@ -505,6 +505,9 @@ static void cpu_idle_pm(enum cpu_wake_cause wake_on)
 		vec = cpu_idle_p8(wake_on);
 		break;
 	case proc_gen_p9:
+		if (chip_quirk(QUIRK_GEM5_CALLOUTS))
+			return;
+
 		vec = cpu_idle_p9(wake_on);
 		break;
 	default:
@@ -534,7 +537,7 @@ static void cpu_idle_pm(enum cpu_wake_cause wake_on)
 
 void cpu_idle_job(void)
 {
-	if (pm_enabled) {
+	if (pm_enabled && !chip_quirk(QUIRK_GEM5_CALLOUTS)) {
 		cpu_idle_pm(cpu_wake_on_job);
 	} else {
 		struct cpu_thread *cpu = this_cpu();
@@ -640,6 +643,10 @@ void cpu_set_sreset_enable(bool enabled)
 		}
 
 	} else if (proc_gen == proc_gen_p9) {
+
+		if (chip_quirk(QUIRK_GEM5_CALLOUTS))
+			return;
+
 		sreset_enabled = enabled;
 		sync();
 		/*

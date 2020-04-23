@@ -139,6 +139,21 @@ void init_chips(void)
 		prlog(PR_NOTICE, "CHIP: Detected QEMU simulator\n");
 	}
 
+	/* Detect gem5 */
+	if (dt_find_by_path(dt_root, "/gem5")) {
+		proc_chip_quirks |= QUIRK_NO_CHIPTOD | QUIRK_GEM5_CALLOUTS
+			| QUIRK_NO_F000F | QUIRK_NO_PBA | QUIRK_NO_OCC_IRQ
+			| QUIRK_NO_RNG | QUIRK_SLOW_SIM;
+
+		enable_gem5_console();
+
+		prlog(PR_NOTICE, "CHIP: Detected gem5 simulator\n");
+
+		dt_for_each_compatible(dt_root, xn, "ibm,gem5-chip")
+			init_chip(xn);
+
+	}
+
 	/* We walk the chips based on xscom nodes in the tree */
 	dt_for_each_compatible(dt_root, xn, "ibm,xscom") {
 		init_chip(xn);

@@ -99,6 +99,20 @@ static struct mem_region skiboot_mambo_initramfs = {
 	.type		= REGION_SKIBOOT_FIRMWARE,
 };
 
+static struct mem_region skiboot_gem5_kernel = {
+	.name		= "ibm,firmware-gem5-kernel",
+	.start		= (unsigned long)KERNEL_LOAD_BASE,
+	.len		= KERNEL_LOAD_SIZE,
+	.type		= REGION_SKIBOOT_FIRMWARE,
+};
+
+static struct mem_region skiboot_gem5_initramfs = {
+	.name		= "ibm,firmware-gem5-initramfs",
+	.start		= (unsigned long)INITRAMFS_LOAD_BASE,
+	.len		= INITRAMFS_LOAD_SIZE,
+	.type		= REGION_SKIBOOT_FIRMWARE,
+};
+
 
 struct alloc_hdr {
 	bool free : 1;
@@ -1133,6 +1147,14 @@ void mem_region_init(void)
 		if (!add_region(&skiboot_mambo_kernel) ||
 		    !add_region(&skiboot_mambo_initramfs)) {
 			prerror("Out of memory adding mambo payload\n");
+			abort();
+		}
+	}
+
+	if (chip_quirk(QUIRK_GEM5_CALLOUTS)) {
+		if (!add_region(&skiboot_gem5_kernel) ||
+		    !add_region(&skiboot_gem5_initramfs)) {
+			prerror("Out of memory adding gem5 payload\n");
 			abort();
 		}
 	}

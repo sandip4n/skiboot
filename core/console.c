@@ -223,6 +223,8 @@ static void write_char(char c)
 {
 #ifdef MAMBO_DEBUG_CONSOLE
 	mambo_console_write(&c, 1);
+#elif defined(GEM5_DEBUG_CONSOLE)
+	gem5_console_write(&c, 1);
 #endif
 	inmem_write(c);
 }

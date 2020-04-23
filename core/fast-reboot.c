@@ -103,7 +103,8 @@ void fast_reboot(void)
 {
 	static int fast_reboot_count = 0;
 
-	if (chip_quirk(QUIRK_NO_DIRECT_CTL)) {
+	if (chip_quirk(QUIRK_NO_DIRECT_CTL) ||
+	    chip_quirk(QUIRK_GEM5_CALLOUTS)) {
 		prlog(PR_DEBUG,
 		      "RESET: Fast reboot disabled by quirk\n");
 		return;
@@ -399,7 +400,8 @@ void __noreturn fast_reboot_entry(void)
 	cpu_set_sreset_enable(true);
 	cpu_set_ipi_enable(true);
 
-	if (!chip_quirk(QUIRK_MAMBO_CALLOUTS)) {
+	if (!chip_quirk(QUIRK_MAMBO_CALLOUTS) ||
+	    !chip_quirk(QUIRK_GEM5_CALLOUTS)) {
 		/*
 		 * mem_region_clear_unused avoids these preload regions
 		 * so it can run along side image preloading. Clear these

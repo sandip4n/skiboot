@@ -1455,6 +1455,12 @@ void slw_init(void)
 		add_cpu_idle_state_properties();
 		return;
 	}
+
+	if (proc_chip_quirks & QUIRK_GEM5_CALLOUTS) {
+		wakeup_engine_state = WAKEUP_ENGINE_NOT_PRESENT;
+		return;
+	}
+
 	if (proc_gen == proc_gen_p8) {
 		for_each_chip(chip) {
 			slw_init_chip_p8(chip);

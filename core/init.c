@@ -447,7 +447,8 @@ static bool load_kernel(void)
 		return false;
 	}
 
-	if (chip_quirk(QUIRK_MAMBO_CALLOUTS)) {
+	if (chip_quirk(QUIRK_MAMBO_CALLOUTS) ||
+	    chip_quirk(QUIRK_GEM5_CALLOUTS)) {
 		secureboot_verify(RESOURCE_ID_KERNEL,
 				  stb_container,
 				  SECURE_BOOT_HEADERS_SIZE + kernel_size);
@@ -488,7 +489,8 @@ static void load_initramfs(void)
 	dt_add_property_u64(dt_chosen, "linux,initrd-end",
 			(uint64_t)initramfs_start + initramfs_size);
 
-	if (chip_quirk(QUIRK_MAMBO_CALLOUTS)) {
+	if (chip_quirk(QUIRK_MAMBO_CALLOUTS) ||
+	    chip_quirk(QUIRK_GEM5_CALLOUTS)) {
 		secureboot_verify(RESOURCE_ID_INITRAMFS,
 				  stb_container,
 				  SECURE_BOOT_HEADERS_SIZE + initramfs_size);

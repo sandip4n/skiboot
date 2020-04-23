@@ -46,6 +46,30 @@ static void mambo_stop_cpu(struct cpu_thread *cpu)
 	callthru_tcl(tcl_cmd, strlen(tcl_cmd));
 }
 
+/**************** gem5 direct controls ****************/
+
+#define SIM_CPU_SRESET	0
+#define SIM_CPU_STOP	1
+
+extern unsigned long callthru_cpu_state(uint32_t state, uint32_t chip_id,
+					uint32_t core_id, uint32_t thread_id);
+
+static void gem5_sreset_cpu(struct cpu_thread *cpu)
+{
+	uint32_t chip_id = pir_to_chip_id(cpu->pir);
+	uint32_t core_id = pir_to_core_id(cpu->pir);
+	uint32_t thread_id = pir_to_thread_id(cpu->pir);
+	callthru_cpu_state(SIM_CPU_SRESET, chip_id, core_id, thread_id);
+}
+
+static void gem5_stop_cpu(struct cpu_thread *cpu)
+{
+	uint32_t chip_id = pir_to_chip_id(cpu->pir);
+	uint32_t core_id = pir_to_core_id(cpu->pir);
+	uint32_t thread_id = pir_to_thread_id(cpu->pir);
+	callthru_cpu_state(SIM_CPU_STOP, chip_id, core_id, thread_id);
+}
+
 /**************** POWER8 direct controls ****************/
 
 static int p8_core_set_special_wakeup(struct cpu_thread *cpu)
@@ -678,6 +702,15 @@ int sreset_all_prepare(void)
 		return OPAL_SUCCESS;
 	}
 
+	if (chip_quirk(QUIRK_GEM5_CALLOUTS)) {
+		for_each_ungarded_cpu(cpu) {
+			if (cpu == this_cpu())
+				continue;
+			gem5_stop_cpu(cpu);
+		}
+		return OPAL_SUCCESS;
+	}
+
 	/* Assert special wakup on all cores. Only on operational cores. */
 	for_each_ungarded_primary(cpu) {
 		if (dctl_set_special_wakeup(cpu) != OPAL_SUCCESS)
@@ -702,7 +735,8 @@ void sreset_all_finish(void)
 {
 	struct cpu_thread *cpu;
 
-	if (chip_quirk(QUIRK_MAMBO_CALLOUTS))
+	if (chip_quirk(QUIRK_MAMBO_CALLOUTS) ||
+	    chip_quirk(QUIRK_GEM5_CALLOUTS))
 		return;
 
 	for_each_ungarded_primary(cpu)
@@ -724,6 +758,15 @@ int sreset_all_others(void)
 			if (cpu == this_cpu())
 				continue;
 			mambo_sreset_cpu(cpu);
+		}
+		return OPAL_SUCCESS;
+	}
+
+	if (chip_quirk(QUIRK_GEM5_CALLOUTS)) {
+		for_each_ungarded_cpu(cpu) {
+			if (cpu == this_cpu())
+				continue;
+			gem5_sreset_cpu(cpu);
 		}
 		return OPAL_SUCCESS;
 	}
@@ -817,7 +860,8 @@ int64_t opal_signal_system_reset(int cpu_nr)
 
 void direct_controls_init(void)
 {
-	if (chip_quirk(QUIRK_MAMBO_CALLOUTS))
+	if (chip_quirk(QUIRK_MAMBO_CALLOUTS) ||
+	    chip_quirk(QUIRK_GEM5_CALLOUTS))
 		return;
 
 	if (proc_gen != proc_gen_p9)
