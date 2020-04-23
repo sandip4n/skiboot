@@ -51,6 +51,11 @@
  */
 //#define MAMBO_DEBUG_CONSOLE		1
 
+/* Enable this to force all writes to the in-memory console to
+ * be mirrored on the gem5 console
+ */
+//#define GEM5_DEBUG_CONSOLE		1
+
 /* Enable this to hookup SkiBoot log to the DVS console */
 #define DVS_CONSOLE		1
 
@@ -64,7 +69,7 @@
  * node to be marked "reserved" so Linux doesn't instanciate a 8250
  * driver for it.
  */
-//#define FORCE_DUMMY_CONSOLE 1
+#define FORCE_DUMMY_CONSOLE 1
 
 /* Enable this to disable setting of the output pending event when
  * sending things on the console. The FSP is very slow to consume
